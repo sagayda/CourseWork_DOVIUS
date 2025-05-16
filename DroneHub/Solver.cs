@@ -39,7 +39,7 @@ public class Solver
 
         if (result is null)
         {
-            Console.WriteLine("The algorithm did not produce any results");
+            errorMessage = "The algorithm did not produce any results";
             return false;
         }
 
