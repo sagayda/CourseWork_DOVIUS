@@ -1,0 +1,10 @@
+﻿namespace CourseWork;
+
+public class SimulatedAnnealingParams
+{
+    public int Seed { get; set; } = 0;
+    public int Iterations { get; init; } = 1000;
+
+    public double InitialTemperature { get; init; } = 100.0d;
+    public double CoolingRate { get; init; } = 0.99d;
+}
