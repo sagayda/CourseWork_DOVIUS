@@ -22,6 +22,9 @@ public record class ProblemParams
 
     public double CalculateObjectiveFor(IntPoint hubCoordinates)
     {
+        if (Bounds.Contains(hubCoordinates) == false)
+            return 0;
+
         double result = 0d;
 
         foreach (var item in Points)

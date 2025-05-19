@@ -203,7 +203,7 @@ internal class Program
 
         var volumeOption = new Option<float>(
             $"--volume",
-            $"Map size multiplyer. 1 will return a {ProblemParams.DefaultBounds.Maximum.X - ProblemParams.DefaultBounds.Minimum.X}x{ProblemParams.DefaultBounds.Maximum.Y - ProblemParams.DefaultBounds.Maximum.Y} map"
+            $"Map size multiplyer. The value of 1 will return a {ProblemParams.DefaultBounds.Maximum.X - ProblemParams.DefaultBounds.Minimum.X}x{ProblemParams.DefaultBounds.Maximum.Y - ProblemParams.DefaultBounds.Minimum.Y} map"
         );
         volumeOption.SetDefaultValue(1f);
         volumeOption.AddAlias("-v");
@@ -223,24 +223,54 @@ internal class Program
         deviationOption.SetDefaultValue(0.2f);
         deviationOption.AddAlias("-e");
 
+        var countOption = new Option<uint?>(
+            "--count",
+            "The exact number of delivery points to generate. If this value is set, the --density option is ignored."
+        );
+        countOption.AddAlias("-n");
+
+        var sizeXOption = new Option<uint?>(
+            "--size-x",
+            "The exact size of the field in X coordinates. If this value is set, the --volume option is ignored."
+        );
+        var sizeYOption = new Option<uint?>(
+            "--size-y",
+            "The exact size of the field in Y coordinates. Works only in conjunction with the --size-x option."
+        );
+
         var generatorCommand = new Command("generate", "Generate problem parameters")
         {
             volumeOption,
             densityOption,
             frequencyOption,
             deviationOption,
+            countOption,
+            sizeXOption,
+            sizeYOption,
             seedOption,
         };
 
         generatorCommand.SetHandler(
-            (float volume, float density, float frequency, float deviation, int seed) =>
+            (
+                float volume,
+                float density,
+                float frequency,
+                float deviation,
+                uint? count,
+                uint? sizeX,
+                uint? sizeY,
+                int seed
+            ) =>
             {
-                RunGenerator(volume, density, frequency, deviation, seed);
+                RunGenerator(volume, density, frequency, deviation, seed, count, sizeX, sizeY);
             },
             volumeOption,
             densityOption,
             frequencyOption,
             deviationOption,
+            countOption,
+            sizeXOption,
+            sizeYOption,
             seedOption
         );
 
@@ -282,7 +312,10 @@ internal class Program
         float density,
         float frequency,
         float deviation,
-        int seed
+        int seed,
+        uint? count,
+        uint? sizeX,
+        uint? sizeY
     )
     {
         ProblemGenerator generator = new()
@@ -292,7 +325,17 @@ internal class Program
             Frequency = frequency,
             Deviation = deviation,
             Seed = seed,
+            Count = count,
         };
+
+        if (sizeX is not null)
+            generator.Bounds = new(
+                new(0, 0),
+                new(
+                    Convert.ToInt32(sizeX.Value),
+                    Convert.ToInt32(sizeY.HasValue ? sizeY.Value : sizeX.Value)
+                )
+            );
 
         var generated = generator.Generate();
         Console.WriteLine(JsonConvert.SerializeObject(generated, Formatting.Indented));
@@ -303,8 +346,10 @@ internal class Program
         Console.WriteLine(
             $"""
             Solution:
-            Hub Location: ({solution.Result.X}, {solution.Result.Y})        Objective: {solution.ResultObjective}
-            Time took: {solution.TimeTook}  Iterations took: {solution.IterationsTook}
+              Hub Location:      ({solution.Result.X}, {solution.Result.Y})
+              Objective:         {solution.ResultObjective:F6}
+              Time took:         {solution.TimeTook}
+              Iterations took:   {solution.IterationsTook}
             """
         );
     }

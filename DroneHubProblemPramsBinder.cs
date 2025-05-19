@@ -19,8 +19,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
 
     private readonly Argument<FileInfo> _filePathOption;
 
-    // private readonly Option<float> _generatorAlphaOption;
-
     public DroneHubProblemPramsBinder(
         Option<int[]> xArrayOption,
         Option<int[]> yArrayOption,
@@ -31,7 +29,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
         Option<int> maxYOption,
         Option<float> droneDistanceOption,
         Argument<FileInfo> filePathOption
-    // Option<float> generatorAlphaOption
     )
     {
         _xArrayOption = xArrayOption;
@@ -44,8 +41,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
         _droneDistanceOption = droneDistanceOption;
 
         _filePathOption = filePathOption;
-
-        // _generatorAlphaOption = generatorAlphaOption;
     }
 
     protected override ProblemParams GetBoundValue(BindingContext bindingContext)
@@ -56,8 +51,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
         var currentResult = parseResult.CommandResult;
         while (currentResult is not null && sourceType == DataSourceType.None)
         {
-            // Console.WriteLine(currentCommand.Name);
-            // currentResult = currentResult.Parents.OfType<Command>().FirstOrDefault();
             currentResult = currentResult.Parent as CommandResult;
 
             switch (currentResult?.Command.Name)
@@ -68,9 +61,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
                 case "file":
                     sourceType = DataSourceType.File;
                     break;
-                // case "generator":
-                //     sourceType = DataSourceType.Generator;
-                //     break;
                 default:
                     break;
             }
@@ -85,9 +75,6 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
             case DataSourceType.File:
                 problemParams = ParseFile(parseResult);
                 break;
-            // case DataSourceType.Generator:
-            //     problemParams = ParseGenerator(parseResult);
-            //     break;
             case DataSourceType.None:
             default:
                 throw new InvalidOperationException("Failed to determine data source.");
