@@ -6,7 +6,7 @@
 
         public float Volume { get; set; } = 1f;
         public float Density { get; set; } = 0.2f;
-        public float Frequency { get; set; } = 4f;
+        public float Frequency { get; set; } = 16f;
 
         public float Deviation { get; set; } = 0.2f;
 
@@ -27,10 +27,8 @@
             }
             else
             {
-                int defaultWidth =
-                    ProblemParams.DefaultBounds.Maximum.X - ProblemParams.DefaultBounds.Minimum.X;
-                int defaultHeight =
-                    ProblemParams.DefaultBounds.Maximum.Y - ProblemParams.DefaultBounds.Minimum.Y;
+                int defaultWidth = ProblemParams.DefaultBounds.Maximum.X - ProblemParams.DefaultBounds.Minimum.X;
+                int defaultHeight = ProblemParams.DefaultBounds.Maximum.Y - ProblemParams.DefaultBounds.Minimum.Y;
 
                 float targetWidth = defaultWidth * Volume;
                 float targetHeight = defaultHeight * Volume;
@@ -90,19 +88,14 @@
             DeliveryPoint[] deliveryPoints = new DeliveryPoint[count];
             for (uint i = 0; i < count; i++)
             {
-                uint deliveries = Convert.ToUInt32(
-                    Math.Max(_workingRandom.NextSingle() * Frequency, 1)
-                );
+                uint deliveries = Convert.ToUInt32(Math.Max(_workingRandom.NextSingle() * Frequency, 1));
 
                 deliveryPoints[i] = new(points[i], deliveries);
             }
 
-            int greaterSide = Math.Max(
-                bounds.Maximum.X - bounds.Minimum.X + 1,
-                bounds.Maximum.Y - bounds.Minimum.Y + 1
-            );
+            int greaterSide = Math.Max(bounds.Maximum.X - bounds.Minimum.X + 1, bounds.Maximum.Y - bounds.Minimum.Y + 1);
 
-            float droneDistance = (_workingRandom.NextSingle() * 0.6f + 0.2f) * greaterSide;
+            float droneDistance = (_workingRandom.NextSingle() * 0.5f + 0.2f) * greaterSide;
 
             return new(deliveryPoints, bounds, droneDistance);
         }

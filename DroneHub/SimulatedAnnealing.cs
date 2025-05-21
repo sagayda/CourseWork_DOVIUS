@@ -13,21 +13,21 @@ public class SimulatedAnnealing : ISolutionAlgorithm
         Parameters = parameters;
     }
 
-    public ProblemSolution Solve(ProblemParams problem)
+    public ProblemSolution Solve(ProblemParams problem, bool saveHistory = false)
     {
         if (problem.Validate(out string? error) == false)
             throw new InvalidDataException(error);
 
-        return Execute(problem);
+        return Execute(problem, saveHistory);
     }
 
-    private ProblemSolution Execute(ProblemParams problem)
+    private ProblemSolution Execute(ProblemParams problem, bool saveHistory)
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
 
         _workinRandom = new(Parameters.Seed);
-        List<IntPoint> history = new();
+        List<IntPoint>? history = saveHistory ? [] : null;
 
         var bounds = problem.Bounds;
 
@@ -36,7 +36,9 @@ public class SimulatedAnnealing : ISolutionAlgorithm
             _workinRandom.Next(bounds.Minimum.Y, bounds.Maximum.Y + 1)
         );
         double currentObjective = problem.CalculateObjectiveFor(current);
-        history.Add(current);
+        history?.Add(current);
+
+        int stagnationIterations = 0;
 
         IntPoint best = current;
         double bestObjective = currentObjective;
@@ -46,6 +48,8 @@ public class SimulatedAnnealing : ISolutionAlgorithm
         int i = 0;
         for (; i < Parameters.Iterations; i++)
         {
+            stagnationIterations++;
+
             var neighbour = GetNeighbour(current, bounds);
             var neighbourObjective = problem.CalculateObjectiveFor(neighbour);
 
@@ -69,16 +73,23 @@ public class SimulatedAnnealing : ISolutionAlgorithm
             {
                 current = neighbour;
                 currentObjective = neighbourObjective;
-                history.Add(current);
+                history?.Add(current);
 
                 if (currentObjective > bestObjective)
                 {
+                    stagnationIterations = 0;
                     best = current;
                     bestObjective = currentObjective;
                 }
             }
 
             temperature *= Parameters.CoolingRate;
+
+            if (Parameters.MaxStagnationIterations >= 0 && stagnationIterations >= Parameters.MaxStagnationIterations)
+            {
+                Console.WriteLine("BR");
+                break;
+            }
         }
 
         stopwatch.Stop();
@@ -92,10 +103,7 @@ public class SimulatedAnnealing : ISolutionAlgorithm
 
         do
         {
-            neighbour = new IntPoint(
-                forPoint.X + _workinRandom!.Next(-1, 2),
-                forPoint.Y + _workinRandom!.Next(-1, 2)
-            );
+            neighbour = new IntPoint(forPoint.X + _workinRandom!.Next(-1, 2), forPoint.Y + _workinRandom!.Next(-1, 2));
         } while (neighbour == forPoint || bounds.Contains(neighbour) == false);
 
         return neighbour;

@@ -2,5 +2,5 @@
 
 public interface ISolutionAlgorithm
 {
-    public ProblemSolution Solve(ProblemParams problem);
+    public ProblemSolution Solve(ProblemParams problem, bool saveHistory = false);
 }

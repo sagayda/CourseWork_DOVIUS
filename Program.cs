@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using CourseWork.DroneHub;
+using CourseWork.DroneHub.Experiments;
 using Newtonsoft.Json;
 
 namespace CourseWork;
@@ -8,30 +9,11 @@ internal class Program
 {
     static async Task<int> Main(string[] args)
     {
-        // FileInfo ff = new("/mnt/D/sagayda/Si_Pee_Eye/SEM6/cw/test.txt");
-        // using var fs = ff.CreateText();
-        // using JsonTextWriter wr = new(fs) { Formatting = Formatting.Indented };
-        // ProblemGenerator generator = new()
-        // {
-        //     Frequency = 10f,
-        //     Volume = 0.2f,
-        //     Density = 0.1f,
-        //     Deviation = 0.4f,
-        // };
-        //
-        // var gen = generator.Generate();
-        // JsonSerializer ser = new();
-        // ser.Serialize(wr, gen);
-
-        // var res = JsonConvert.SerializeObject(gen, Formatting.Indented);
-        // Console.WriteLine(res);
-
-        var rootCommand = new RootCommand(
-            "Applications for solving the drone hub problem - coursework"
-        )
+        var rootCommand = new RootCommand("Applications for solving the drone hub problem - coursework")
         {
             CreateSolveCommand(),
             CreateGenerateCommand(),
+            CreateExperimentCommand(),
         };
 
         return await rootCommand.InvokeAsync(args);
@@ -39,11 +21,7 @@ internal class Program
 
     private static Command CreateSolveCommand()
     {
-        var seedOption = new Option<int>(
-            name: "--seed",
-            description: "Seed for randomizer",
-            getDefaultValue: () => DateTime.Now.Second
-        );
+        var seedOption = new Option<int>(name: "--seed", description: "Seed for randomizer", getDefaultValue: () => DateTime.Now.Second);
         seedOption.AddAlias("-s");
 
         var iterationsOption = new Option<uint>("--iterations", "Count of iterations");
@@ -54,10 +32,7 @@ internal class Program
         temperatureOption.SetDefaultValue(100d);
         temperatureOption.AddAlias("-t");
 
-        var simulatedAnnealingCommand = new Command(
-            "simulated-annealing",
-            "Use simulated-annealing algorithm"
-        )
+        var simulatedAnnealingCommand = new Command("simulated-annealing", "Use simulated-annealing algorithm")
         {
             iterationsOption,
             temperatureOption,
@@ -79,13 +54,6 @@ internal class Program
         var droneDistanceOption = new Option<float>("--distance", "Drone flight distance");
         droneDistanceOption.SetDefaultValue(16f);
         droneDistanceOption.AddAlias("-d");
-        // droneDistanceOption.AddValidator(
-        //     (result) =>
-        //     {
-        //         if (result.GetValueForOption(droneDistanceOption) <= 0)
-        //             result.ErrorMessage = "Drone distance must be greater than zero";
-        //     }
-        // );
 
         #region manual input
         var xArrayOption = new Option<int[]>("-x", "List of X coordinates for delivery points")
@@ -98,10 +66,7 @@ internal class Program
             IsRequired = true,
             AllowMultipleArgumentsPerToken = true,
         };
-        var wArrayOption = new Option<uint[]>(
-            "-w",
-            "List of delivery quantities for delivery points"
-        )
+        var wArrayOption = new Option<uint[]>("-w", "List of delivery quantities for delivery points")
         {
             IsRequired = true,
             AllowMultipleArgumentsPerToken = true,
@@ -125,18 +90,6 @@ internal class Program
 
         #region file input
         var filePathArgument = new Argument<FileInfo>("path", "Path to file");
-        // filePathArgument.AddValidator(
-        //     (result) =>
-        //     {
-        //         // var file = result.GetValueForOption(filePathOption);
-        //         var file = result.GetValueForArgument(filePathArgument);
-        //
-        //         if (file is null || file.Exists == false)
-        //         {
-        //             result.ErrorMessage = "TODO ERR";
-        //         }
-        //     }
-        // );
 
         var solveFileCommand = new Command("file", "Read data from json file")
         {
@@ -185,20 +138,12 @@ internal class Program
             paramsBinder
         );
 
-        return new Command("solve", "Solve the drone hub problem")
-        {
-            solveManualCommand,
-            solveFileCommand,
-        };
+        return new Command("solve", "Solve the drone hub problem") { solveManualCommand, solveFileCommand };
     }
 
     private static Command CreateGenerateCommand()
     {
-        var seedOption = new Option<int>(
-            name: "--seed",
-            description: "Seed for randomizer",
-            getDefaultValue: () => DateTime.Now.Second
-        );
+        var seedOption = new Option<int>(name: "--seed", description: "Seed for randomizer", getDefaultValue: () => DateTime.Now.Second);
         seedOption.AddAlias("-s");
 
         var volumeOption = new Option<float>(
@@ -216,10 +161,7 @@ internal class Program
         frequencyOption.SetDefaultValue(4f);
         frequencyOption.AddAlias("-f");
 
-        var deviationOption = new Option<float>(
-            "--deviation",
-            "Deviation factor from target values of field size and number of points"
-        );
+        var deviationOption = new Option<float>("--deviation", "Deviation factor from target values of field size and number of points");
         deviationOption.SetDefaultValue(0.2f);
         deviationOption.AddAlias("-e");
 
@@ -251,16 +193,7 @@ internal class Program
         };
 
         generatorCommand.SetHandler(
-            (
-                float volume,
-                float density,
-                float frequency,
-                float deviation,
-                uint? count,
-                uint? sizeX,
-                uint? sizeY,
-                int seed
-            ) =>
+            (float volume, float density, float frequency, float deviation, uint? count, uint? sizeX, uint? sizeY, int seed) =>
             {
                 RunGenerator(volume, density, frequency, deviation, seed, count, sizeX, sizeY);
             },
@@ -275,6 +208,162 @@ internal class Program
         );
 
         return generatorCommand;
+    }
+
+    private static Command CreateExperimentCommand()
+    {
+        var experimentArgs = new Argument<float[]>("args", "List of experiment arguments");
+        var seedOption = new Option<int?>("--seed", "Seed for experiment");
+
+        var densityExperimentCommand = new Command(
+            "density-impact",
+            "To study the impact of delivery point density on the performance of algorithms"
+        )
+        {
+            seedOption,
+            experimentArgs,
+        };
+        densityExperimentCommand.SetHandler(
+            (float[] args, int? seed) =>
+            {
+                if (args.Length <= 0)
+                {
+                    LogError("You should provide at least one experiment argument");
+                    return;
+                }
+
+                DensityImpactExperiment exp = new(args);
+                Console.WriteLine("Running density impact experiment...");
+                Console.WriteLine($"Seed: {exp.Seed}");
+                var res = exp.Execute();
+                Console.WriteLine("Got results:\n");
+                PrintExperimentLists(res.SAResults, res.LSResults);
+            },
+            experimentArgs,
+            seedOption
+        );
+
+        var volumeExperimentCommand = new Command(
+            "volume-impact",
+            "To study the influence of the problem map size on the efficiency of algorithms"
+        )
+        {
+            seedOption,
+            experimentArgs,
+        };
+        volumeExperimentCommand.SetHandler(
+            (float[] args, int? seed) =>
+            {
+                if (args.Length <= 0)
+                {
+                    LogError("You should provide at least one experiment argument");
+                    return;
+                }
+
+                VolumeImpactExperiment exp = new(args);
+                Console.WriteLine("Running volume impact experiment...");
+                Console.WriteLine($"Seed: {exp.Seed}");
+                var res = exp.Execute();
+                Console.WriteLine("Got results:\n");
+                PrintExperimentLists(res.SAResults, res.LSResults);
+            },
+            experimentArgs,
+            seedOption
+        );
+
+        var temperatureExperimentCommand = new Command(
+            "temperature-impact",
+            "To study the influence of the initial temperature on the efficiency of the Simulated Annealing algorithm"
+        )
+        {
+            seedOption,
+            experimentArgs,
+        };
+        temperatureExperimentCommand.SetHandler(
+            (float[] args, int? seed) =>
+            {
+                if (args.Length <= 0)
+                {
+                    LogError("You should provide at least one experiment argument");
+                    return;
+                }
+
+                TemperatureImpactExperiment exp = new(args);
+                Console.WriteLine("Running temperature impact experiment...");
+                Console.WriteLine($"Seed: {exp.Seed}");
+                var res = exp.Execute();
+                Console.WriteLine("Got results:\n");
+                PrintExperimentLists(res.SAResults, res.LSResults);
+            },
+            experimentArgs,
+            seedOption
+        );
+
+        var coolingRateExperimentCommand = new Command(
+            "cooling-rate-impact",
+            "To study the effect of cooling rate on the efficiency of the Simulated Annealing algorithm"
+        )
+        {
+            seedOption,
+            experimentArgs,
+        };
+        coolingRateExperimentCommand.SetHandler(
+            (float[] args, int? seed) =>
+            {
+                if (args.Length <= 0)
+                {
+                    LogError("You should provide at least one experiment argument");
+                    return;
+                }
+
+                CoolingRateImpactExperiment exp = new(args);
+                Console.WriteLine("Running cooling rate impact experiment...");
+                Console.WriteLine($"Seed: {exp.Seed}");
+                var res = exp.Execute();
+                Console.WriteLine("Got results:\n");
+                PrintExperimentLists(res.SAResults, res.LSResults);
+            },
+            experimentArgs,
+            seedOption
+        );
+
+        var stagnationExperimentCommand = new Command(
+            "stagnation-impact",
+            "To study the influence of the I_Stagnation parameter on the efficiency of the Simulated Annealing algorithm."
+        )
+        {
+            seedOption,
+            experimentArgs,
+        };
+        stagnationExperimentCommand.SetHandler(
+            (float[] args, int? seed) =>
+            {
+                if (args.Length <= 0)
+                {
+                    LogError("You should provide at least one experiment argument");
+                    return;
+                }
+
+                StagnationImpactExperiment exp = new(args);
+                Console.WriteLine("Running stagnation impact experiment...");
+                Console.WriteLine($"Seed: {exp.Seed}");
+                var res = exp.Execute();
+                Console.WriteLine("Got results:\n");
+                PrintExperimentLists(res.SAResults, res.LSResults);
+            },
+            experimentArgs,
+            seedOption
+        );
+
+        var experimentCommand = new Command("experiment", "Run one of the defined experiments")
+        {
+            densityExperimentCommand,
+            volumeExperimentCommand,
+            coolingRateExperimentCommand,
+            temperatureExperimentCommand,
+            stagnationExperimentCommand,
+        };
+        return experimentCommand;
     }
 
     private static void RunSASolver(ProblemParams problem, SimulatedAnnealingParams parameters)
@@ -331,10 +420,7 @@ internal class Program
         if (sizeX is not null)
             generator.Bounds = new(
                 new(0, 0),
-                new(
-                    Convert.ToInt32(sizeX.Value),
-                    Convert.ToInt32(sizeY.HasValue ? sizeY.Value : sizeX.Value)
-                )
+                new(Convert.ToInt32(sizeX.Value), Convert.ToInt32(sizeY.HasValue ? sizeY.Value : sizeX.Value))
             );
 
         var generated = generator.Generate();
@@ -354,7 +440,32 @@ internal class Program
         );
     }
 
-    private static void LogError(string text)
+    private static void PrintExperimentLists(List<ExperimentResult>? firstList, List<ExperimentResult>? secondList)
+    {
+        int count = Math.Max(firstList?.Count ?? 0, secondList?.Count ?? 0);
+
+        for (int i = 0; i < count; i++)
+        {
+            Console.WriteLine($"ITERATION {i}");
+            if (firstList is not null && i < firstList.Count)
+                PrintExperiment(firstList[i]);
+            if (secondList is not null && i < secondList.Count)
+                PrintExperiment(secondList[i]);
+        }
+    }
+
+    private static void PrintExperiment(ExperimentResult experiment)
+    {
+        var str = $"\tAvg. Time: {experiment.AvarageTime, -16:g}\tAvg. Objective: {experiment.AvarageObjective:F6}";
+
+        if (experiment.Annotations is not null)
+            foreach (var annotation in experiment.Annotations)
+                str += $"\t{annotation.Key}: {annotation.Value}";
+
+        Console.WriteLine(str);
+    }
+
+    public static void LogError(string text)
     {
         var color = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Red;

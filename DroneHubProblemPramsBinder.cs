@@ -96,14 +96,8 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
             points[i] = new(new(x[i], y[i]), w[i]);
 
         IntBounds bounds = new(
-            new(
-                parseResult.GetValueForOption(_minXOption),
-                parseResult.GetValueForOption(_minYOption)
-            ),
-            new(
-                parseResult.GetValueForOption(_maxXOption),
-                parseResult.GetValueForOption(_maxYOption)
-            )
+            new(parseResult.GetValueForOption(_minXOption), parseResult.GetValueForOption(_minYOption)),
+            new(parseResult.GetValueForOption(_maxXOption), parseResult.GetValueForOption(_maxYOption))
         );
 
         float droneDistance = parseResult.GetValueForOption(_droneDistanceOption);
@@ -116,7 +110,10 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
         var file = parseResult.GetValueForArgument(_filePathOption);
 
         if (file is null)
-            throw new InvalidDataException("TODO 1");
+        {
+            Program.LogError("File reading failed");
+            return new([], default, default);
+        }
 
         ProblemParams? problemParams = null;
         try
@@ -129,12 +126,14 @@ public class DroneHubProblemPramsBinder : BinderBase<ProblemParams>
         }
         catch (System.Exception)
         {
-            throw new InvalidDataException("TODO 2");
+            Program.LogError("File reading failed");
+            return new([], default, default);
         }
 
         if (problemParams is null)
         {
-            throw new InvalidDataException("TODO 3");
+            Program.LogError("File reading failed");
+            return new([], default, default);
         }
 
         return problemParams;

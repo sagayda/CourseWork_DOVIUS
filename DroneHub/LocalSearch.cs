@@ -4,28 +4,22 @@ namespace CourseWork.DroneHub;
 
 public class LocalSearch : ISolutionAlgorithm
 {
-    private static IntPoint[] _directions =
-    [
-        new IntPoint(1, 0),
-        new IntPoint(-1, 0),
-        new IntPoint(0, 1),
-        new IntPoint(0, -1),
-    ];
+    private static IntPoint[] _directions = [new IntPoint(1, 0), new IntPoint(-1, 0), new IntPoint(0, 1), new IntPoint(0, -1)];
 
-    public ProblemSolution Solve(ProblemParams problem)
+    public ProblemSolution Solve(ProblemParams problem, bool saveHistory = false)
     {
         if (problem.Validate(out string? error) == false)
             throw new InvalidDataException(error);
 
-        return Execute(problem);
+        return Execute(problem, saveHistory);
     }
 
-    private ProblemSolution Execute(ProblemParams problem)
+    private ProblemSolution Execute(ProblemParams problem, bool saveHistory)
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
 
-        List<IntPoint> history = new();
+        List<IntPoint>? history = saveHistory ? [] : null;
         var bounds = problem.Bounds;
 
         int i = 0;
@@ -36,14 +30,12 @@ public class LocalSearch : ISolutionAlgorithm
         IntPoint bestNeighbour = CalculateCenterOfMass(problem.Points);
         double bestNeighbourObjective = problem.CalculateObjectiveFor(current);
 
-        Console.WriteLine(bestNeighbour);
-
         do
         {
             i++;
             current = bestNeighbour;
             currentObjective = bestNeighbourObjective;
-            history.Add(current);
+            history?.Add(current);
 
             bestNeighbourObjective = -1;
 
@@ -63,10 +55,7 @@ public class LocalSearch : ISolutionAlgorithm
         } while (bestNeighbourObjective > currentObjective);
 
         stopwatch.Stop();
-        return new ProblemSolution(current, currentObjective, stopwatch.Elapsed, i)
-        {
-            History = history,
-        };
+        return new ProblemSolution(current, currentObjective, stopwatch.Elapsed, i) { History = history };
     }
 
     private IntPoint CalculateCenterOfMass(IEnumerable<DeliveryPoint> points)
