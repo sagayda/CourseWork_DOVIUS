@@ -86,10 +86,7 @@ public class SimulatedAnnealing : ISolutionAlgorithm
             temperature *= Parameters.CoolingRate;
 
             if (Parameters.MaxStagnationIterations >= 0 && stagnationIterations >= Parameters.MaxStagnationIterations)
-            {
-                Console.WriteLine("BR");
                 break;
-            }
         }
 
         stopwatch.Stop();
