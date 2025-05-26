@@ -40,9 +40,7 @@
 
                 int minSizeY = Math.Max(1, Convert.ToInt32(targetHeight * (1f - Deviation)));
                 int maxSizeY = Math.Max(minSizeY, Convert.ToInt32(targetHeight * (1f + Deviation)));
-
                 int sizeY = _workingRandom.Next(minSizeY, maxSizeY + 1);
-
                 bounds = new(new(0, 0), new(sizeX, sizeY));
             }
 
@@ -95,7 +93,7 @@
 
             int greaterSide = Math.Max(bounds.Maximum.X - bounds.Minimum.X + 1, bounds.Maximum.Y - bounds.Minimum.Y + 1);
 
-            float droneDistance = (_workingRandom.NextSingle() * 0.5f + 0.2f) * greaterSide;
+            float droneDistance = (_workingRandom.NextSingle() * 0.4f + 0.1f) * greaterSide;
 
             return new(deliveryPoints, bounds, droneDistance);
         }
