@@ -32,10 +32,15 @@ internal class Program
         temperatureOption.SetDefaultValue(100d);
         temperatureOption.AddAlias("-t");
 
+        var coolingRateOption = new Option<double>("--cooling-rate", "Coolint rate of the algorithm");
+        coolingRateOption.SetDefaultValue(0.995d);
+        coolingRateOption.AddAlias("-c");
+
         var simulatedAnnealingCommand = new Command("simulated-annealing", "Use simulated-annealing algorithm")
         {
             iterationsOption,
             temperatureOption,
+            coolingRateOption,
             seedOption,
         };
         simulatedAnnealingCommand.AddAlias("sa");
@@ -112,12 +117,13 @@ internal class Program
         );
 
         simulatedAnnealingCommand.SetHandler(
-            (ProblemParams problemParams, uint iterations, double temperature, int seed) =>
+            (ProblemParams problemParams, uint iterations, double temperature, double coolingRate, int seed) =>
             {
                 SimulatedAnnealingParams parameters = new()
                 {
                     Iterations = Convert.ToInt32(iterations),
                     InitialTemperature = temperature,
+                    CoolingRate = coolingRate,
                     Seed = seed,
                 };
 
@@ -127,6 +133,7 @@ internal class Program
             paramsBinder,
             iterationsOption,
             temperatureOption,
+            coolingRateOption,
             seedOption
         );
         localSearchCommand.SetHandler(
