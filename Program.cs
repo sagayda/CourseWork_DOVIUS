@@ -240,6 +240,9 @@ internal class Program
                 }
 
                 DensityImpactExperiment exp = new(args);
+                if (seed is not null)
+                    exp.Seed = seed.Value;
+
                 Console.WriteLine("Running density impact experiment...");
                 Console.WriteLine($"Seed: {exp.Seed}");
                 var res = exp.Execute();
@@ -268,6 +271,9 @@ internal class Program
                 }
 
                 VolumeImpactExperiment exp = new(args);
+                if (seed is not null)
+                    exp.Seed = seed.Value;
+
                 Console.WriteLine("Running volume impact experiment...");
                 Console.WriteLine($"Seed: {exp.Seed}");
                 var res = exp.Execute();
@@ -296,6 +302,9 @@ internal class Program
                 }
 
                 TemperatureImpactExperiment exp = new(args);
+                if (seed is not null)
+                    exp.Seed = seed.Value;
+
                 Console.WriteLine("Running temperature impact experiment...");
                 Console.WriteLine($"Seed: {exp.Seed}");
                 var res = exp.Execute();
@@ -324,6 +333,9 @@ internal class Program
                 }
 
                 CoolingRateImpactExperiment exp = new(args);
+                if (seed is not null)
+                    exp.Seed = seed.Value;
+
                 Console.WriteLine("Running cooling rate impact experiment...");
                 Console.WriteLine($"Seed: {exp.Seed}");
                 var res = exp.Execute();
@@ -352,6 +364,9 @@ internal class Program
                 }
 
                 StagnationImpactExperiment exp = new(args);
+                if (seed is not null)
+                    exp.Seed = seed.Value;
+
                 Console.WriteLine("Running stagnation impact experiment...");
                 Console.WriteLine($"Seed: {exp.Seed}");
                 var res = exp.Execute();

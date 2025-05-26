@@ -26,6 +26,7 @@ public class StagnationImpactExperiment : ExperimentBase
         };
 
         List<Run> runs = [];
+        int maxStagnationIterationsToReport = -1;
         for (int i = 0; i < LaunchesPerIteration; i++)
         {
             generator.Seed = Seed + i;
@@ -33,7 +34,9 @@ public class StagnationImpactExperiment : ExperimentBase
             var problem = generator.Generate();
             var n = Math.Sqrt(problem.Bounds.Width * problem.Bounds.Height);
             var maxStagnationIterations = Convert.ToInt32(Alphas[iteration] * n * Math.Log2(n));
-            Console.WriteLine(maxStagnationIterations);
+
+            if (maxStagnationIterationsToReport == -1)
+                maxStagnationIterationsToReport = maxStagnationIterations;
 
             runs.Add(
                 new()
@@ -44,7 +47,11 @@ public class StagnationImpactExperiment : ExperimentBase
             );
         }
 
-        annotations = new Dictionary<string, object>() { { "Alpha", Alphas[iteration] } };
+        annotations = new Dictionary<string, object>()
+        {
+            { "Alpha", Alphas[iteration] },
+            { "I_Stagnation", maxStagnationIterationsToReport },
+        };
 
         return runs;
     }
